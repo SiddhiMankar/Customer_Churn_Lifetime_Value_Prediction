@@ -119,11 +119,11 @@ export const CustomerExplorer: React.FC<CustomerExplorerProps> = ({ customers })
               }}
               className="bg-transparent text-xs text-zinc-200 py-1 px-2 focus:outline-none cursor-pointer"
             >
-              <option value="all" className="bg-zinc-900">All Segments</option>
-              <option value="Champions" className="bg-zinc-900">Champions</option>
-              <option value="Loyal Customers" className="bg-zinc-900">Loyal Customers</option>
-              <option value="At-Risk" className="bg-zinc-900">At-Risk</option>
-              <option value="Hibernating/Lost" className="bg-zinc-900">Hibernating/Lost</option>
+              <option value="all">All Segments</option>
+              <option value="Champions">Champions</option>
+              <option value="Loyal Customers">Loyal Customers</option>
+              <option value="At-Risk">At-Risk</option>
+              <option value="Hibernating/Lost">Hibernating/Lost</option>
             </select>
           </div>
 

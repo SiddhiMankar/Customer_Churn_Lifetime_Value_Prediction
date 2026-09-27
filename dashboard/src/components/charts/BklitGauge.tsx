@@ -89,13 +89,13 @@ export const BklitGauge: React.FC<BklitGaugeProps> = ({
             y1={notch.y1}
             x2={notch.x2}
             y2={notch.y2}
-            stroke={notch.isActive ? 'url(#gaugeActiveGradient)' : 'rgba(255, 255, 255, 0.08)'}
+            stroke={notch.isActive ? 'url(#gaugeActiveGradient)' : 'var(--gauge-inactive-notch, rgba(255, 255, 255, 0.08))'}
             strokeWidth={size > 240 ? 4 : 3}
             strokeLinecap="round"
             filter={notch.isActive ? 'url(#gaugeGlow)' : undefined}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{
-              opacity: notch.isActive ? 1 : 0.35,
+              opacity: notch.isActive ? 1 : 0.85,
               scale: 1,
             }}
             transition={{

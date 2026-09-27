@@ -33,7 +33,7 @@ export const BklitDonutChart: React.FC<BklitDonutChartProps> = ({
           <defs>
             {/* Ambient drop shadow for the 3D glass tube */}
             <filter id="glassTubeShadow" x="-25%" y="-25%" width="150%" height="150%">
-              <feDropShadow dx="0" dy="8" stdDeviation="6" floodColor="#000000" floodOpacity="0.8" />
+              <feDropShadow dx="0" dy="8" stdDeviation="6" floodColor="var(--glass-shadow-color, #000000)" floodOpacity="var(--glass-shadow-opacity, 0.8)" />
             </filter>
 
             {/* Specular highlights across the curved glass torus */}
@@ -47,10 +47,10 @@ export const BklitDonutChart: React.FC<BklitDonutChartProps> = ({
 
             {/* Hollow glass tube cavity gradient */}
             <linearGradient id="glassTubeCavity" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="rgba(255, 255, 255, 0.16)" />
-              <stop offset="35%" stopColor="rgba(14, 14, 18, 0.95)" />
-              <stop offset="70%" stopColor="rgba(8, 8, 10, 0.98)" />
-              <stop offset="100%" stopColor="rgba(255, 255, 255, 0.08)" />
+              <stop offset="0%" stopColor="var(--glass-cavity-top, rgba(255, 255, 255, 0.16))" />
+              <stop offset="35%" stopColor="var(--glass-cavity-mid, rgba(14, 14, 18, 0.95))" />
+              <stop offset="70%" stopColor="var(--glass-cavity-low, rgba(8, 8, 10, 0.98))" />
+              <stop offset="100%" stopColor="var(--glass-cavity-bot, rgba(255, 255, 255, 0.08))" />
             </linearGradient>
 
             {/* Cylindrical crest reflection along tube crown */}
@@ -82,7 +82,7 @@ export const BklitDonutChart: React.FC<BklitDonutChartProps> = ({
             cy={center}
             r={radius}
             fill="transparent"
-            stroke="rgba(0, 0, 0, 0.9)"
+            stroke="var(--glass-outer-rim, rgba(0, 0, 0, 0.9))"
             strokeWidth={strokeWidth + 2}
             filter="url(#glassTubeShadow)"
           />
@@ -103,7 +103,7 @@ export const BklitDonutChart: React.FC<BklitDonutChartProps> = ({
             cy={center}
             r={radius}
             fill="transparent"
-            stroke="rgba(0, 0, 0, 0.55)"
+            stroke="var(--glass-channel-inset, rgba(0, 0, 0, 0.55))"
             strokeWidth={strokeWidth - 6}
           />
 
@@ -150,7 +150,7 @@ export const BklitDonutChart: React.FC<BklitDonutChartProps> = ({
             cy={center}
             r={radius + strokeWidth / 2 - 0.75}
             fill="transparent"
-            stroke="rgba(255, 255, 255, 0.28)"
+            stroke="var(--glass-rim-outer, rgba(255, 255, 255, 0.28))"
             strokeWidth={1.2}
             className="pointer-events-none"
           />
@@ -160,7 +160,7 @@ export const BklitDonutChart: React.FC<BklitDonutChartProps> = ({
             cy={center}
             r={radius - strokeWidth / 2 + 0.75}
             fill="transparent"
-            stroke="rgba(255, 255, 255, 0.2)"
+            stroke="var(--glass-rim-inner, rgba(255, 255, 255, 0.2))"
             strokeWidth={1}
             className="pointer-events-none"
           />

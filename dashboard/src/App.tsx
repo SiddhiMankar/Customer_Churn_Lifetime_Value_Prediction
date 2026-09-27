@@ -12,6 +12,8 @@ import {
   Layers,
   FileSpreadsheet,
   ArrowLeft,
+  Sun,
+  Moon,
 } from 'lucide-react'
 import type { SummaryData, CustomerRecord, RawTransaction } from '@/types'
 import { KPICard } from '@/components/KPICard'
@@ -37,6 +39,28 @@ export default function App() {
   const [gaugeMode, setGaugeMode] = useState<'churn' | 'retention'>('churn')
   const [activeHighlight, setActiveHighlight] = useState<'cltv' | 'churn' | 'active' | 'spend' | null>(null)
   const [focusedTheoryBlock, setFocusedTheoryBlock] = useState<TheoryBlockType | null>(null)
+
+  // Light / Dark Theme State with localStorage persistence
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('theme')
+      if (saved === 'dark' || saved === 'light') return saved
+    }
+    return 'dark'
+  })
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('theme', theme)
+      if (theme === 'light') {
+        document.documentElement.classList.add('light')
+        document.documentElement.setAttribute('data-theme', 'light')
+      } else {
+        document.documentElement.classList.remove('light')
+        document.documentElement.setAttribute('data-theme', 'dark')
+      }
+    }
+  }, [theme])
 
   useEffect(() => {
     async function loadData() {
@@ -234,12 +258,16 @@ export default function App() {
   )
 
   return (
-    <div className="min-h-screen bg-[#050505] text-zinc-100 flex flex-col selection:bg-zinc-700/50 selection:text-white">
-      {/* Top Ambient Grey Highlight */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[350px] bg-gradient-to-b from-white/[0.07] via-zinc-400/[0.02] to-transparent blur-3xl pointer-events-none" />
+    <div className={`min-h-screen ${theme === 'dark' ? 'bg-[#050505] text-zinc-100' : 'bg-[#faf8f5] text-stone-900'} flex flex-col selection:bg-zinc-700/50 selection:text-white transition-colors duration-300`}>
+      {/* Top Ambient Highlight */}
+      {theme === 'dark' ? (
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[350px] bg-gradient-to-b from-white/[0.07] via-zinc-400/[0.02] to-transparent blur-3xl pointer-events-none" />
+      ) : (
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[350px] bg-gradient-to-b from-amber-600/[0.035] via-stone-300/[0.015] to-transparent blur-3xl pointer-events-none" />
+      )}
 
       {/* Navigation Header */}
-      <header className="sticky top-0 z-30 bg-[#050505]/90 backdrop-blur-xl border-b border-zinc-800/80 px-4 sm:px-6 py-3">
+      <header className={`sticky top-0 z-30 ${theme === 'dark' ? 'bg-[#050505]/90 border-zinc-800/80' : 'bg-[#faf8f5]/90 border-[#eeebe3]'} backdrop-blur-xl border-b px-4 sm:px-6 py-3 transition-colors duration-300`}>
         <div className="w-full flex items-center justify-between gap-4">
           {/* Top-Left: Sidebar Toggle (Far Left) & Branding */}
           <div className="flex items-center gap-3.5">
@@ -259,7 +287,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* Top-Right: Quick Page Switcher & Methodology Button */}
+          {/* Top-Right: Quick Page Switcher, Methodology Button, and Theme Toggle */}
           <div className="flex items-center gap-2.5">
             {/* Direct Page Switcher Buttons */}
             <div className="hidden sm:flex items-center bg-zinc-900/90 border border-zinc-800 p-1 rounded-xl text-xs font-medium">
@@ -293,6 +321,24 @@ export default function App() {
             >
               <BookOpen className="w-3.5 h-3.5 text-zinc-400" />
               <span className="hidden md:inline">Methodology</span>
+            </button>
+
+            {/* Theme Toggle Button (Top Right Corner - Only Icon No Text) */}
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className={`p-2 rounded-xl border transition-all cursor-pointer shadow-sm flex items-center justify-center group ${
+                theme === 'dark'
+                  ? 'bg-zinc-900 hover:bg-zinc-800 text-amber-400 border-zinc-800 hover:border-zinc-700'
+                  : 'bg-[#f5f1ea] hover:bg-[#eae5db] text-stone-800 border-[#e5e0d6]'
+              }`}
+              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              aria-label="Toggle light or dark theme"
+            >
+              {theme === 'dark' ? (
+                <Sun className="w-4 h-4 text-amber-400 group-hover:rotate-45 transition-transform duration-300" />
+              ) : (
+                <Moon className="w-4 h-4 text-stone-800 group-hover:-rotate-12 transition-transform duration-300" />
+              )}
             </button>
           </div>
         </div>
@@ -535,7 +581,7 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-800/80 bg-[#050505]/90 px-6 py-6 mt-12 text-center text-xs text-zinc-500">
+      <footer className={`border-t ${theme === 'dark' ? 'border-zinc-800/80 bg-[#050505]/90 text-zinc-500' : 'border-[#eeebe3] bg-[#faf8f5]/90 text-stone-500'} px-6 py-6 mt-12 text-center text-xs transition-colors duration-300`}>
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <p>
             Customer Churn &amp; CLTV Prediction • Advanced Data Science Mini-Project
