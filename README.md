@@ -24,7 +24,11 @@ Customer_Churn_Lifetime_Value_Prediction/
 ├── .gitignore                   # Ignored files (virtual environment, cache, checkpoints)
 ├── Untitled4.ipynb              # Main Jupyter Notebook containing EDA, Cleaning, and RFM Pipeline
 ├── executed_notebook.ipynb      # Generated notebook containing full execution outputs and plots
-├── rfm_customer_data.csv        # Processed output dataset (4,285 customer profiles)
+├── rfm_customer_data.csv        # Processed RFM dataset (4,285 customer profiles)
+├── cltv_modeling_and_segmentation.ipynb  # CLTV modeling & K-Means clustering notebook
+├── executed_cltv_notebook.ipynb # Executed notebook with all modeling plots
+├── customer_cltv_predictions_and_segments.csv # Final predictions & segmentations output
+├── *.png                        # Various visualizations (CLTV distributions, segments, matrices)
 ├── requirements.txt             # Python package dependencies
 └── README.md                    # Project documentation & execution guide
 ```
@@ -168,6 +172,41 @@ Customer ID,Recency,Frequency,Monetary,Tenure
 12349,43,2,1996.34,225
 12351,11,1,295.68,11
 ```
+
+---
+
+## 📈 CLTV Modeling & Segmentation Results
+
+Using the pre-processed RFM dataset, we executed a robust machine learning pipeline to predict customer behavior and value, leading to actionable business segments.
+
+### Achievements & Models Utilized:
+1. **Churn & Future Transactions Prediction**: Leveraged the **BG/NBD (Beta Geometric / Negative Binomial Distribution) Model** to accurately predict the expected number of future transactions over 30, 90, and 180 days, and calculated the probability of each customer remaining "alive" (active).
+2. **Customer Lifetime Value Estimation**: Applied the **Gamma-Gamma Model** to evaluate the average monetary value per transaction, successfully computing the 6-month projected Customer Lifetime Value (CLTV) with a monthly discount rate.
+3. **Actionable Customer Segmentation**: Utilized **K-Means Clustering** (validated via Elbow method and Silhouette scores) to group the customer base into 4 distinct segments (e.g., Champions, Loyal Customers, At-Risk, Hibernating/Lost).
+
+### Key Business Findings & Churn Insights:
+Based on the modeling of our 4,285 filtered customers:
+- **Active Customers (Will Return)**: 2,215 customers (**51.7%**) are predicted to remain active and continue purchasing.
+- **Churned Customers (Won't Return)**: 2,070 customers (**48.3%**) are classified as churned.
+- **Why?**: The model identifies churn based on a customer's individual shopping habits (frequency vs recency). A customer who buys frequently but has a sudden, unusually long gap in purchases (high recency) is flagged as highly likely to have churned. Conversely, a customer who naturally buys infrequently is given more leeway before being considered churned.
+- **How We Proved This**: We leveraged the **`Probability_Alive`** measure calculated by the BG/NBD model, which statistically estimates the likelihood a customer is still active. A strict threshold of **`< 0.2`** (less than 20% chance of being active) was applied to this probability to definitively flag a customer as "Churned" (`Is_Churned = 1`).
+
+### Outputs Generated:
+- **Notebook**: [`cltv_modeling_and_segmentation.ipynb`](cltv_modeling_and_segmentation.ipynb) / [`executed_cltv_notebook.ipynb`](executed_cltv_notebook.ipynb)
+- **Data**: [`customer_cltv_predictions_and_segments.csv`](customer_cltv_predictions_and_segments.csv)
+- **Visuals**: Several high-quality plots highlighting churn risk distribution, CLTV distributions, segmentation scatter plots, and RFM segment heatmaps (`*.png`).
+
+### Output Dictionary (`customer_cltv_predictions_and_segments.csv`)
+Extends the base RFM fields with actionable predictions:
+| Column Name | Type | Description |
+| :--- | :--- | :--- |
+| `Predicted_Purchases_*` | `float` | Expected number of purchases in the next 30, 90, or 180 days. |
+| `Probability_Alive` | `float` | The conditional probability that a customer is still active. |
+| `Churn_Risk_Score` | `float` | Calculated as `1.0 - Probability_Alive`. |
+| `Is_Churned` | `int` | Binary flag indicating churn (1) if Probability_Alive < 0.2, else (0). |
+| `Predicted_CLTV` | `float` | Estimated Customer Lifetime Value over a 6-month horizon. |
+| `Cluster_ID` | `int` | Numeric identifier for K-Means cluster (0-3). |
+| `Customer_Segment` | `str` | Human-readable segment label (e.g., Champions, At-Risk). |
 
 ---
 
