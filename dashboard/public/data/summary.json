@@ -1,0 +1,144 @@
+{
+  "kpis": {
+    "total_customers": 4285,
+    "active_count": 2215,
+    "churned_count": 2070,
+    "churn_rate": 48.3,
+    "total_cltv": 3437127.26,
+    "avg_cltv": 802.13,
+    "median_cltv": 411.84,
+    "total_monetary": 6125331.24,
+    "avg_monetary": 1429.48,
+    "avg_recency": 90.5,
+    "avg_frequency": 4.43
+  },
+  "segments": [
+    {
+      "name": "Champions",
+      "count": 893,
+      "percentage": 20.84,
+      "avg_cltv": 2662.84,
+      "total_cltv": 2377913.27,
+      "avg_churn_risk": 0.1948,
+      "avg_recency": 50.3,
+      "avg_frequency": 1.3,
+      "avg_monetary": 450.72,
+      "avg_tenure": 56.3,
+      "pred_purchases_30d": 0.87,
+      "pred_purchases_90d": 1.9,
+      "pred_purchases_180d": 2.81,
+      "color": "#10B981",
+      "badge": "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+    },
+    {
+      "name": "Loyal Customers",
+      "count": 1117,
+      "percentage": 26.07,
+      "avg_cltv": 743.54,
+      "total_cltv": 830532.51,
+      "avg_churn_risk": 0.2154,
+      "avg_recency": 231.4,
+      "avg_frequency": 1.5,
+      "avg_monetary": 382.76,
+      "avg_tenure": 260.0,
+      "pred_purchases_30d": 0.16,
+      "pred_purchases_90d": 0.46,
+      "pred_purchases_180d": 0.85,
+      "color": "#3167ad",
+      "badge": "bg-zinc-800 text-zinc-200 border-zinc-700"
+    },
+    {
+      "name": "At-Risk",
+      "count": 2259,
+      "percentage": 52.72,
+      "avg_cltv": 101.23,
+      "total_cltv": 228681.47,
+      "avg_churn_risk": 0.9545,
+      "avg_recency": 37.4,
+      "avg_frequency": 6.5,
+      "avg_monetary": 2035.36,
+      "avg_tenure": 273.8,
+      "pred_purchases_30d": 0.02,
+      "pred_purchases_90d": 0.06,
+      "pred_purchases_180d": 0.1,
+      "color": "#f52020",
+      "badge": "bg-amber-500/10 text-amber-400 border-amber-500/30"
+    },
+    {
+      "name": "Hibernating/Lost",
+      "count": 16,
+      "percentage": 0.37,
+      "avg_cltv": 0.0,
+      "total_cltv": 0.0,
+      "avg_churn_risk": 1.0,
+      "avg_recency": 4.5,
+      "avg_frequency": 94.1,
+      "avg_monetary": 43588.71,
+      "avg_tenure": 372.1,
+      "pred_purchases_30d": 0.0,
+      "pred_purchases_90d": 0.0,
+      "pred_purchases_180d": 0.0,
+      "color": "#e3e027",
+      "badge": "bg-rose-500/10 text-rose-400 border-rose-500/30"
+    }
+  ],
+  "churn_distribution": [
+    {
+      "range": "0-20% (Safe)",
+      "count": 1555,
+      "percentage": 36.3
+    },
+    {
+      "range": "20-40% (Low Risk)",
+      "count": 265,
+      "percentage": 6.2
+    },
+    {
+      "range": "40-60% (Moderate)",
+      "count": 180,
+      "percentage": 4.2
+    },
+    {
+      "range": "60-80% (High Risk)",
+      "count": 215,
+      "percentage": 5.0
+    },
+    {
+      "range": "80-100% (Critical)",
+      "count": 2070,
+      "percentage": 48.3
+    }
+  ],
+  "cltv_distribution": [
+    {
+      "tier": "<",
+      "count": 1773,
+      "percentage": 41.4
+    },
+    {
+      "tier": "-",
+      "count": 570,
+      "percentage": 13.3
+    },
+    {
+      "tier": "-K",
+      "count": 832,
+      "percentage": 19.4
+    },
+    {
+      "tier": "K-.5K",
+      "count": 727,
+      "percentage": 17.0
+    },
+    {
+      "tier": ".5K-K",
+      "count": 346,
+      "percentage": 8.1
+    },
+    {
+      "tier": ">K",
+      "count": 37,
+      "percentage": 0.9
+    }
+  ]
+}
