@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { motion } from 'motion/react'
+import { motion, AnimatePresence } from 'motion/react'
 import {
   DollarSign,
   TrendingUp,
@@ -11,6 +11,7 @@ import {
   RefreshCw,
   Layers,
   FileSpreadsheet,
+  ArrowLeft,
 } from 'lucide-react'
 import type { SummaryData, CustomerRecord, RawTransaction } from '@/types'
 import { KPICard } from '@/components/KPICard'
@@ -22,6 +23,7 @@ import { CustomerExplorer } from '@/components/CustomerExplorer'
 import { ExcelSheetView } from '@/components/ExcelSheetView'
 import { Sidebar } from '@/components/Sidebar'
 import { ModelExplanationModal } from '@/components/ModelExplanationModal'
+import { TheorySidePanel, type TheoryBlockType } from '@/components/TheorySidePanel'
 import { formatCurrency } from '@/lib/utils'
 
 export default function App() {
@@ -34,6 +36,7 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [gaugeMode, setGaugeMode] = useState<'churn' | 'retention'>('churn')
   const [activeHighlight, setActiveHighlight] = useState<'cltv' | 'churn' | 'active' | 'spend' | null>(null)
+  const [focusedTheoryBlock, setFocusedTheoryBlock] = useState<TheoryBlockType | null>(null)
 
   useEffect(() => {
     async function loadData() {
@@ -78,6 +81,157 @@ export default function App() {
   }
 
   const { kpis, segments, churn_distribution } = summary
+
+  const renderGaugeCard = (isFocused: boolean) => (
+    <div
+      className={`p-6 rounded-2xl glass-panel flex flex-col justify-between h-full relative group transition-all duration-300 ${
+        !isFocused ? 'hover:border-zinc-500/80 cursor-pointer hover:shadow-[0_0_25px_rgba(255,255,255,0.04)]' : 'border-zinc-700 shadow-2xl'
+      }`}
+    >
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-semibold tracking-wide text-zinc-200 uppercase flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+            Bklit Notch Gauge
+          </h3>
+          <div className="flex items-center gap-2">
+            {!isFocused && (
+              <span className="text-[10px] text-zinc-500 group-hover:text-zinc-200 font-mono transition-colors flex items-center gap-1 bg-zinc-900/80 px-2 py-0.5 rounded border border-zinc-800">
+                Theory ↗
+              </span>
+            )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setGaugeMode(gaugeMode === 'churn' ? 'retention' : 'churn')
+              }}
+              className="flex items-center gap-1 text-[11px] text-zinc-400 hover:text-zinc-200 bg-zinc-850 px-2 py-0.5 rounded-md border border-zinc-700/60 transition-colors cursor-pointer"
+              title="Toggle between Churn and Retention"
+            >
+              <RefreshCw className="w-3 h-3" />
+              <span>Toggle</span>
+            </button>
+          </div>
+        </div>
+        <p className="text-xs text-zinc-400">
+          {gaugeMode === 'churn'
+            ? 'BG/NBD Customer Dropout Risk Rate'
+            : 'Active Customer Retention Rate'}
+        </p>
+      </div>
+
+      <div className="my-3 flex items-center justify-center">
+        <BklitGauge
+          value={gaugeMode === 'churn' ? kpis.churn_rate : 100 - kpis.churn_rate}
+          totalNotches={38}
+          defaultLabel={gaugeMode === 'churn' ? 'Churn Rate' : 'Retention Rate'}
+          centerValue={
+            gaugeMode === 'churn'
+              ? `${kpis.churn_rate}%`
+              : `${(100 - kpis.churn_rate).toFixed(1)}%`
+          }
+          subLabel={
+            gaugeMode === 'churn'
+              ? `${kpis.churned_count.toLocaleString()} Churned`
+              : `${kpis.active_count.toLocaleString()} Active`
+          }
+          gradientFrom={gaugeMode === 'churn' ? '#f59e0b' : '#a1a1aa'}
+          gradientTo={gaugeMode === 'churn' ? '#ef4444' : '#10b981'}
+          size={isFocused ? 280 : 270}
+        />
+      </div>
+
+      <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800/80 text-center">
+        <span className="text-[11px] text-zinc-400 block font-medium">
+          Decision Criterion:
+        </span>
+        <span className="text-xs font-mono text-zinc-300">
+          A customer is flagged churned if <span className="text-rose-400 font-bold">P(Alive) &lt; 0.20</span>
+        </span>
+      </div>
+    </div>
+  )
+
+  const renderSpectrumCard = (isFocused: boolean) => (
+    <div
+      className={`p-6 rounded-2xl glass-panel flex flex-col justify-between h-full relative group transition-all duration-300 ${
+        !isFocused ? 'hover:border-zinc-500/80 cursor-pointer hover:shadow-[0_0_25px_rgba(255,255,255,0.04)]' : 'border-zinc-700 shadow-2xl'
+      }`}
+    >
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            Distribution Analysis
+          </span>
+          {!isFocused && (
+            <span className="text-[10px] text-zinc-500 group-hover:text-zinc-200 font-mono transition-colors flex items-center gap-1 bg-zinc-900/80 px-2 py-0.5 rounded border border-zinc-800">
+              Theory ↗
+            </span>
+          )}
+        </div>
+        <BklitAreaChart data={churn_distribution} />
+      </div>
+
+      <div className="mt-4 pt-3 border-t border-zinc-800/80 grid grid-cols-2 gap-3 text-xs">
+        <div className="bg-zinc-900/40 p-2.5 rounded-lg border border-zinc-800/60">
+          <span className="text-zinc-400 block text-[10px] uppercase font-medium">Safe (&lt; 20% Risk)</span>
+          <span className="font-mono text-emerald-400 font-bold text-sm">
+            {churn_distribution[0]?.count.toLocaleString()}{' '}
+            <span className="text-[11px] text-zinc-500 font-normal">
+              ({churn_distribution[0]?.percentage}%)
+            </span>
+          </span>
+        </div>
+        <div className="bg-zinc-900/40 p-2.5 rounded-lg border border-zinc-800/60">
+          <span className="text-zinc-400 block text-[10px] uppercase font-medium">Critical (&gt; 80% Risk)</span>
+          <span className="font-mono text-rose-400 font-bold text-sm">
+            {churn_distribution[4]?.count.toLocaleString()}{' '}
+            <span className="text-[11px] text-zinc-500 font-normal">
+              ({churn_distribution[4]?.percentage}%)
+            </span>
+          </span>
+        </div>
+      </div>
+    </div>
+  )
+
+  const renderCohortCard = (isFocused: boolean) => (
+    <div
+      className={`p-6 rounded-2xl glass-panel flex flex-col justify-between h-full relative group transition-all duration-300 ${
+        !isFocused ? 'hover:border-zinc-500/80 cursor-pointer hover:shadow-[0_0_25px_rgba(255,255,255,0.04)]' : 'border-zinc-700 shadow-2xl'
+      }`}
+    >
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-semibold tracking-wide text-zinc-200 uppercase flex items-center gap-2">
+            <Layers className="w-4 h-4 text-zinc-300" />
+            Cohort Distribution
+          </h3>
+          {!isFocused && (
+            <span className="text-[10px] text-zinc-500 group-hover:text-zinc-200 font-mono transition-colors flex items-center gap-1 bg-zinc-900/80 px-2 py-0.5 rounded border border-zinc-800">
+              Theory ↗
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-zinc-400">
+          4 Discovered Customer Clusters
+        </p>
+      </div>
+
+      <div className="my-2">
+        <BklitDonutChart
+          segments={segments}
+          totalCustomers={kpis.total_customers}
+        />
+      </div>
+
+      <div className="p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 text-center">
+        <span className="text-[11px] text-zinc-400">
+          Champions drive <strong className="text-emerald-400 font-mono">69.2%</strong> of predicted revenue
+        </span>
+      </div>
+    </div>
+  )
 
   return (
     <div className="min-h-screen bg-[#050505] text-zinc-100 flex flex-col selection:bg-zinc-700/50 selection:text-white">
@@ -245,130 +399,115 @@ export default function App() {
             className="space-y-8"
           >
             {/* Visual Analytics Showcase (Bklit UI + Motion.dev) */}
-            <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* Card 1: Bklit Notch Gauge */}
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className="lg:col-span-4 p-6 rounded-2xl glass-panel flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-semibold tracking-wide text-zinc-200 uppercase flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
-                      Bklit Notch Gauge
-                    </h3>
-                    <button
-                      onClick={() =>
-                        setGaugeMode(gaugeMode === 'churn' ? 'retention' : 'churn')
-                      }
-                      className="flex items-center gap-1 text-[11px] text-zinc-400 hover:text-zinc-200 bg-zinc-850 px-2 py-0.5 rounded-md border border-zinc-700/60 transition-colors"
+            <AnimatePresence mode="wait">
+              {focusedTheoryBlock === null ? (
+                /* Overview Mode: All 3 blocks side by side */
+                <motion.section
+                  key="showcase-overview"
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.3 }}
+                  className="grid grid-cols-1 lg:grid-cols-12 gap-6"
+                >
+                  {/* Card 1: Bklit Notch Gauge */}
+                  <motion.div
+                    whileHover={{ scale: 1.01 }}
+                    transition={{ duration: 0.2 }}
+                    onClick={() => setFocusedTheoryBlock('gauge')}
+                    className="lg:col-span-4"
+                    title="Click to explore theory & formulas for Bklit Notch Gauge"
+                  >
+                    {renderGaugeCard(false)}
+                  </motion.div>
+
+                  {/* Card 2: Bklit Churn Risk Spectrum */}
+                  <motion.div
+                    whileHover={{ scale: 1.01 }}
+                    transition={{ duration: 0.2 }}
+                    onClick={() => setFocusedTheoryBlock('spectrum')}
+                    className="lg:col-span-5"
+                    title="Click to explore theory & formulas for Churn Risk Spectrum"
+                  >
+                    {renderSpectrumCard(false)}
+                  </motion.div>
+
+                  {/* Card 3: Segment Donut Breakdown */}
+                  <motion.div
+                    whileHover={{ scale: 1.01 }}
+                    transition={{ duration: 0.2 }}
+                    onClick={() => setFocusedTheoryBlock('cohort')}
+                    className="lg:col-span-3"
+                    title="Click to explore theory & formulas for Cohort Distribution"
+                  >
+                    {renderCohortCard(false)}
+                  </motion.div>
+                </motion.section>
+              ) : (
+                /* Focused Theory Mode: Selected block shifts left, other blocks fade away, side panel slides in */
+                <motion.section
+                  key={`showcase-focused-${focusedTheoryBlock}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="space-y-3"
+                >
+                  {/* Focus Header & Breadcrumb */}
+                  <div className="flex items-center justify-between pb-1">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setFocusedTheoryBlock(null)}
+                        className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white text-xs border border-zinc-700/80 transition-colors cursor-pointer group"
+                      >
+                        <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
+                        <span>Back to All 3 Charts</span>
+                      </button>
+                      <span className="text-zinc-600 text-xs font-mono">•</span>
+                      <span className="text-xs text-zinc-400 font-sans">
+                        Deep-Dive Focus: <strong className="text-white capitalize">
+                          {focusedTheoryBlock === 'gauge'
+                            ? 'Bklit Notch Gauge'
+                            : focusedTheoryBlock === 'spectrum'
+                            ? 'Customer Churn Risk Spectrum'
+                            : 'Cohort Distribution'}
+                        </strong>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 2-Column Split: Selected Block Left + Theory Side Panel Right */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                    {/* The Selected Block smoothly positioned on the left */}
+                    <motion.div
+                      initial={{ opacity: 0, x: -30 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -30 }}
+                      transition={{ type: 'spring', damping: 25, stiffness: 240 }}
+                      className="lg:col-span-5 flex flex-col h-full"
                     >
-                      <RefreshCw className="w-3 h-3" />
-                      <span>Toggle</span>
-                    </button>
+                      {focusedTheoryBlock === 'gauge' && renderGaugeCard(true)}
+                      {focusedTheoryBlock === 'spectrum' && renderSpectrumCard(true)}
+                      {focusedTheoryBlock === 'cohort' && renderCohortCard(true)}
+                    </motion.div>
+
+                    {/* The Theory Side Panel smoothly sliding into view from right */}
+                    <div className="lg:col-span-7 flex flex-col h-full min-h-[520px]">
+                      <TheorySidePanel
+                        block={focusedTheoryBlock}
+                        onClose={() => setFocusedTheoryBlock(null)}
+                        onSelectBlock={(b) => setFocusedTheoryBlock(b)}
+                        kpis={kpis}
+                        churnDistribution={churn_distribution}
+                        segments={segments}
+                        gaugeMode={gaugeMode}
+                        setGaugeMode={setGaugeMode}
+                      />
+                    </div>
                   </div>
-                  <p className="text-xs text-zinc-400">
-                    {gaugeMode === 'churn'
-                      ? 'BG/NBD Customer Dropout Risk Rate'
-                      : 'Active Customer Retention Rate'}
-                  </p>
-                </div>
-
-                <div className="my-3 flex items-center justify-center">
-                  <BklitGauge
-                    value={gaugeMode === 'churn' ? kpis.churn_rate : 100 - kpis.churn_rate}
-                    totalNotches={38}
-                    defaultLabel={gaugeMode === 'churn' ? 'Churn Rate' : 'Retention Rate'}
-                    centerValue={
-                      gaugeMode === 'churn'
-                        ? `${kpis.churn_rate}%`
-                        : `${(100 - kpis.churn_rate).toFixed(1)}%`
-                    }
-                    subLabel={
-                      gaugeMode === 'churn'
-                        ? `${kpis.churned_count.toLocaleString()} Churned`
-                        : `${kpis.active_count.toLocaleString()} Active`
-                    }
-                    gradientFrom={gaugeMode === 'churn' ? '#f59e0b' : '#a1a1aa'}
-                    gradientTo={gaugeMode === 'churn' ? '#ef4444' : '#10b981'}
-                    size={270}
-                  />
-                </div>
-
-                <div className="p-3 rounded-xl bg-zinc-900/60 border border-zinc-800/80 text-center">
-                  <span className="text-[11px] text-zinc-400 block font-medium">
-                    Decision Criterion:
-                  </span>
-                  <span className="text-xs font-mono text-zinc-300">
-                    A customer is flagged churned if <span className="text-rose-400 font-bold">P(Alive) &lt; 0.20</span>
-                  </span>
-                </div>
-              </motion.div>
-
-              {/* Card 2: Bklit Churn Risk Spectrum */}
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.15 }}
-                className="lg:col-span-5 p-6 rounded-2xl glass-panel flex flex-col justify-between"
-              >
-                <BklitAreaChart data={churn_distribution} />
-
-                <div className="mt-4 pt-3 border-t border-zinc-800/80 grid grid-cols-2 gap-3 text-xs">
-                  <div className="bg-zinc-900/40 p-2.5 rounded-lg border border-zinc-800/60">
-                    <span className="text-zinc-400 block text-[10px] uppercase font-medium">Safe (&lt; 20% Risk)</span>
-                    <span className="font-mono text-emerald-400 font-bold text-sm">
-                      {churn_distribution[0]?.count.toLocaleString()}{' '}
-                      <span className="text-[11px] text-zinc-500 font-normal">
-                        ({churn_distribution[0]?.percentage}%)
-                      </span>
-                    </span>
-                  </div>
-                  <div className="bg-zinc-900/40 p-2.5 rounded-lg border border-zinc-800/60">
-                    <span className="text-zinc-400 block text-[10px] uppercase font-medium">Critical (&gt; 80% Risk)</span>
-                    <span className="font-mono text-rose-400 font-bold text-sm">
-                      {churn_distribution[4]?.count.toLocaleString()}{' '}
-                      <span className="text-[11px] text-zinc-500 font-normal">
-                        ({churn_distribution[4]?.percentage}%)
-                      </span>
-                    </span>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Card 3: Segment Donut Breakdown */}
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="lg:col-span-3 p-6 rounded-2xl glass-panel flex flex-col justify-between"
-              >
-                <div className="mb-2">
-                  <h3 className="text-sm font-semibold tracking-wide text-zinc-200 uppercase flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-zinc-300" />
-                    Cohort Distribution
-                  </h3>
-                  <p className="text-xs text-zinc-400">
-                    4 Discovered Customer Clusters
-                  </p>
-                </div>
-
-                <div className="my-2">
-                  <BklitDonutChart
-                    segments={segments}
-                    totalCustomers={kpis.total_customers}
-                  />
-                </div>
-
-                <div className="p-2.5 rounded-xl bg-zinc-900/60 border border-zinc-800/80 text-center">
-                  <span className="text-[11px] text-zinc-400">
-                    Champions drive <strong className="text-emerald-400 font-mono">69.2%</strong> of predicted revenue
-                  </span>
-                </div>
-              </motion.div>
-            </section>
+                </motion.section>
+              )}
+            </AnimatePresence>
 
             {/* Section: Segment Deep Dive & Comparison */}
             <section className="p-6 rounded-2xl glass-panel">
